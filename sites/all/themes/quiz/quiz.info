@@ -1,0 +1,37 @@
+name = Quiz
+description = A custom theme built for Malmö Stads open source quiz project
+screenshot = screenshot.png
+engine = phptemplate
+core = 7.x
+php = 5.2
+
+
+;-------------- FEATURES -------------
+features[] = logo
+features[] = favicon
+features[] = name
+features[] = slogan
+;features[] = node_user_picture
+;features[] = comment_user_picture
+;features[] = comment_user_verification
+;features[] = secondary_menu
+;features[] = main_menu
+
+
+;-------------- REGIONS -------------
+regions[main_navigation] = Main navigation
+regions[content] = Content
+regions_hidden[page_top] = Page Top
+regions_hidden[page_bottom] = Page Bottom
+
+
+;-------------- CSS -------------
+stylesheets[all][] = css/base-reset.css
+stylesheets[all][] = css/base-improvements.css
+stylesheets[all][] = css/layout.css
+stylesheets[all][] = css/general.css
+stylesheets[all][] = css/responsiveness.css
+
+
+;-------------- JS -------------
+scripts[] = js/ui.js
