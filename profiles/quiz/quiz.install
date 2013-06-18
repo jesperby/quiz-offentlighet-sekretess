@@ -80,6 +80,15 @@ function quiz_install() {
     node_type_save($type);
   }
 
+  // Set the default options for the quiz round and question content types.
+  variable_set('node_options_quiz_round', array('status'));
+  variable_set('node_preview_quiz_round', 0);
+  variable_set('node_submitted_quiz_round', 0);
+  variable_set('node_options_question', array('status'));
+  variable_set('node_preview_question', 0);
+  variable_set('node_submitted_question', 0);
+  variable_set('rh_node_action_question', 2);
+
   // Create field and instance for field_answers.
   $field = array(
     'field_name' => 'field_answers',
