@@ -13,5 +13,6 @@ dependencies[] = number
 dependencies[] = options
 dependencies[] = overlay
 dependencies[] = quiz_wizard
+dependencies[] = rh_node
 dependencies[] = token
 dependencies[] = toolbar
