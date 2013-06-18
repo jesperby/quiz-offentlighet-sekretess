@@ -363,8 +363,7 @@ function quiz_wizard_get_num_questions_available() {
  * Gets the maximun number of questions.
  *
  * This function will count the number of times a field with the naming
- * convention field_qN_nid is found. It will also make sure that the number
- * doesn't exceed the number of question nodes available.
+ * convention field_qN_nid is found.
  *
  * @return int
  *   The number of times a field name matched the pattern.
@@ -373,9 +372,6 @@ function quiz_wizard_get_num_questions_maximum() {
   // Get the fields from the quiz round content type.
   $fields = field_info_instances('node', 'quiz_round');
 
-  // Get the number of available questions.
-  $available = quiz_wizard_get_num_questions_available();
-
   // Count the number of quiz fields.
   $questions = 0;
   foreach ($fields as $field_name => $info) {
@@ -383,11 +379,6 @@ function quiz_wizard_get_num_questions_maximum() {
       // Found a field that was named after the naming convention, increase the
       // count.
       $questions++;
-
-      // Stop searching if we've reached the number of available questions.
-      if ($questions == $available) {
-        break;
-      }
     }
   }
 

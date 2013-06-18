@@ -7,14 +7,6 @@
  * The main administration form.
  */
 function quiz_wizard_admin_form($form, &$form_state) {
-  // Get the maximum number of questions.
-  $num_questions = quiz_wizard_get_num_questions_maximum();
-
-  // Notify the user if there aren't any questions available.
-  if (!$num_questions) {
-    drupal_set_message(t("There are no questions available yet, probably because there aren't any question nodes created, or none of them are published. Go to <a href=\"!path\">this page</a> to create a question.", array('!path' => 'node/add/question')), 'error');
-  }
-
   // Add a fieldset for the configuration settings.
   $form['configuration'] = array(
     '#type' => 'fieldset',
@@ -24,7 +16,7 @@ function quiz_wizard_admin_form($form, &$form_state) {
 
   // Configure the number of questions.
   $options = array();
-  for ($i = 1; $i <= $num_questions; $i++) {
+  for ($i = 1; $i <= quiz_wizard_get_num_questions_maximum(); $i++) {
     $options[$i] = $i;
   }
   $form['configuration']['quiz_questions'] = array(
@@ -33,7 +25,6 @@ function quiz_wizard_admin_form($form, &$form_state) {
     '#description' => t('The number of questions that the user has to answer. The order will be randomized every time.'),
     '#required' => TRUE,
     '#options' => $options,
-    '#disabled' => !$num_questions,
     '#default_value' => quiz_wizard_get_num_questions_configured(),
   );
 
