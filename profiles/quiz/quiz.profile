@@ -5,6 +5,34 @@
  */
 
 /**
+ * Implements hook_install_tasks().
+ */
+function quiz_install_tasks($install_state) {
+  $tasks['quiz_configure_form'] = array(
+    'display_name' => st('Configure quiz'),
+    'display' => TRUE,
+    'type' => 'form',
+  );
+
+  return $tasks;
+}
+
+/**
+ * Installation task: Configure the quiz.
+ *
+ * These settings are configurable later on as well. We'll provide them during
+ * the installation procedure for convienience.
+ */
+function quiz_configure_form() {
+  drupal_set_title(st('Quiz configuration'));
+
+  module_load_include('inc', 'quiz_wizard', 'quiz_wizard.admin');
+
+  $form_state = array();
+  return quiz_wizard_admin_form(array(), $form_state);
+}
+
+/**
  * Implements hook_ctools_plugin_api().
  */
 function quiz_ctools_plugin_api() {

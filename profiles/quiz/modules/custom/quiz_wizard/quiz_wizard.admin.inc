@@ -120,6 +120,12 @@ function quiz_wizard_admin_form($form, &$form_state) {
     '#description' => t("Additional text that will be displayed when the user passes the test."),
   );
 
+  // Add the validate function the the form. This is done, because this form is
+  // added to the installation procedure as well, and the validate function
+  // needs to be specified in that case since the form will have a different
+  // name
+  $form['#validate'] = array('quiz_wizard_admin_form_validate');
+
   // Return the form using system settings.
   return system_settings_form($form);
 }
