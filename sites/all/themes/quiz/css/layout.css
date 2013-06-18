@@ -24,7 +24,7 @@
 #comments .title.comment-form,
 #comments,
 body > *,
-.node {
+.main-content > * {
   margin-top: 40px;
 }
 
@@ -35,10 +35,9 @@ body > *,
   margin-top: 20px;
 }
 
+.main-content > *:first-child,
 #comments .comment > *:first-child,
 #comments > *:first-child,
-.node > *:first-child,
-.node:first-child,
 #toolbar {
   margin-top: 0;
 }

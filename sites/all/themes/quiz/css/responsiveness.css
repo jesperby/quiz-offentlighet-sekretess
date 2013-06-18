@@ -9,8 +9,10 @@
 }
 
 
+/* Main breakpoint */
 @media only screen and (max-width: 740px) {
 
+  /* Header */
   .header .site-name,
   .header .site-slogan {
     display: block;
@@ -62,6 +64,29 @@
 
   .header .nav .menu.mobile-show {
     display: block;
+  }
+
+  /* Stat block */
+  .stat-block {
+    background-position: center 20px !important;
+    padding-top: 100px;
+    padding-left: 20px;
+    text-align: center;
+  }
+
+  .stat-block > * {
+    display: block !important;
+    margin-top: 10px;
+  }
+
+  .stat-block > *:first-child {
+    margin-top: 0;
+  }
+
+  .stat-block .stat {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
   }
 
 }

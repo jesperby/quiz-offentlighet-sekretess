@@ -44,7 +44,8 @@ textarea:focus {
   vertical-align: middle;
 }
 
-.quiz-start,
+.field-type-link-field a,
+.quiz-start a,
 .system-tabs a,
 .links a,
 .button,
@@ -67,17 +68,19 @@ button {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#efad49', endColorstr='#eb981c',GradientType=0 ); /* IE6-9 */
 }
 
-.quiz-start:focus,
+.field-type-link-field a:hover,
+.field-type-link-field a:focus,
+.quiz-start a:focus,
+.quiz-start a:hover,
 .system-tabs a:focus,
-.links a:focus,
-.button:focus,
-input[type="submit"]:focus,
-button:focus,
-.quiz-start:hover,
 .system-tabs a:hover,
+.links a:focus,
 .links a:hover,
+.button:focus,
 .button:hover,
+input[type="submit"]:focus,
 input[type="submit"]:hover,
+button:focus,
 button:hover {
   color: #fff;
   text-decoration: none;
@@ -91,7 +94,8 @@ button:hover {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eda436', endColorstr='#ea8f10',GradientType=0 ); /* IE6-9 */
 }
 
-.quiz-start:active,
+.field-type-link-field a:active,
+.quiz-start a:active,
 .system-tabs a:active,
 .links a:active,
 .button:active,
@@ -100,11 +104,12 @@ button:active {
   box-shadow: inset 0 2px 1px rgba(0,0,0,0.2);
 }
 
-.quiz-start,
+.field-type-link-field a,
+.quiz-start a,
 .button-big {
-  font-size: 2em;
+  font-size: 1.6em;
   padding: 16px 20px;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 [disabled] {
@@ -163,18 +168,22 @@ label,
   padding: 10px 20px;
 }
 
+.box.passed,
 .box.correct {
   border-color: #86ba75;
 }
 
+.box.passed > .title:first-child,
 .box.correct > .title:first-child {
   background: #86ba75;
 }
 
+.box.failed,
 .box.wrong {
   border-color: #f55555;
 }
 
+.box.failed > .title:first-child,
 .box.wrong > .title:first-child {
   background: #f55555;
 }
@@ -274,6 +283,7 @@ label,
 
 
 /* MAIN CONTENT ---------------- */
+.stat-block,
 .system-tabs,
 .messages,
 .header,
@@ -328,36 +338,38 @@ h1.title + .node {
   background-image: url('../img/check-correct.png');
 }
 
-/* Messages */
-.messages {
-  color: #fff;
+/* Quiz round results */
+.field-name-quiz-result {
+  text-align: center;
+}
+
+.field-name-quiz-result p {
+  display: inline-block;
+  background: transparent url('../img/star-green.png') center center no-repeat;
+  width: 83px;
+  height: 99px;
+  line-height: 86px;
+  font-weight: 700;
   font-size: 18px;
-  line-height: 1.3em;
+  margin-top: 10px;
 }
 
-.messages a {
-  color: rgba(255,255,255,0.6);
-  text-decoration: underline;
+.failed .field-name-quiz-result p {
+  background-image: url('../img/star-red.png');
 }
 
-.messages a:hover,
-.messages a:focus {
-  color: rgba(255,255,255,0.4);
+.node-quiz-round .field-name-field-score-text {
+  text-align: center;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.new,
-.messages.status { /* Where's .ok used? Tables? Check it out. */
-  background-color: #86ba75;
+.node-quiz-round .field-type-link-field {
+  text-align: center;
 }
 
-.messages.warning {
-  background-color: #e1ce30;
-}
-
-.messages.error {
-  background-color: #f55555;
-}
-
+/* Links */
 .operations,
 .operations li {
   margin-left: 0 !important;
@@ -370,176 +382,27 @@ h1.title + .node {
   margin-top: 0 !important;
 }
 
-
-/*
-  TYPOGRAPHY ----------------------
-  Add the class legible to the parent element for good typographic formatting.
-*/
-
-.legible * {
-  line-height: 1.3em;
+/* Statistics boxes */
+.stat-block {
+  padding-left: 120px;
+  background: #b5ddec url('../img/stat-participants.png') 20px center no-repeat;
+  color: #22637d;
 }
 
-/* Spacing between elements */
-.quiz-start,
-.legible h1,
-.legible h2,
-.legible h3,
-.legible h4,
-.legible h5,
-.legible h6,
-.legible div,
-.legible p,
-.legible ul,
-.legible ol,
-.legible blockquote,
-.legible pre code {
-  margin-top: 1em;
-}
-.quiz-start:first-child,
-.legible h1 + p,
-.legible h2 + p,
-.legible h3 + p,
-.legible h4 + p,
-.legible h5 + p,
-.legible h6 + p,
-.legible h1 + div,
-.legible h2 + div,
-.legible h3 + div,
-.legible h4 + div,
-.legible h5 + div,
-.legible h6 + div,
-.legible h1 + ul,
-.legible h2 + ul,
-.legible h3 + ul,
-.legible h4 + ul,
-.legible h5 + ul,
-.legible h6 + ul,
-.legible h1 + ol,
-.legible h2 + ol,
-.legible h3 + ol,
-.legible h4 + ol,
-.legible h5 + ol,
-.legible h6 + ol,
-.legible h1:first-child,
-.legible h2:first-child,
-.legible h3:first-child,
-.legible h4:first-child,
-.legible h5:first-child,
-.legible h6:first-child,
-.legible div:first-child,
-.legible p:first-child,
-.legible ul:first-child,
-.legible ol:first-child,
-.legible blockquote:first-child,
-.legible pre:first-child code{
-  margin-top: 0;
+.stat-block.stat-block-average {
+  background-image: url('../img/stat-average.png');
+  background-position: 25px center;
 }
 
-/* Lists */
-.legible ul,
-.legible ol {
-  margin-left: 30px;
-  padding-left: 10px;
+.stat-block > * {
+  display: inline-block !important;
+  vertical-align: middle;
 }
 
-.legible ol {
-  list-style: decimal;
-}
-
-.legible ul {
-  list-style: circle;
-}
-
-.legible li {
-  margin-top: 0.3em;
-}
-.legible li:first-child {
-  margin-top: 0;
-}
-
-/* Headers */
-.legible h1,
-.legible h2,
-.legible h3,
-.legible h4,
-.legible h5,
-.legible h6 {
-  font-size: 2em;
-  margin-bottom: 0.3em;
-  line-height: 1em;
-}
-
-.legible h2 {
-  font-size: 1.8em;
-}
-
-.legible h3 {
-  font-size: 1.6em;
-}
-
-.legible h4 {
-  font-size: 1.4em;
-}
-
-.legible h5 {
-  font-size: 1.2em;
-}
-
-.legible h6 {
-  font-size: 1em;
-}
-
-/* Quotes, bolds, italics and other emphasis */
-.legible b,
-.legible strong {
-  font-weight: bold;
-}
-
-.legible i,
-.legible em {
-  font-style: italic;
-}
-
-.legible blockquote {
-  margin: 2em 3em;
-  font-size: 0.9em;
-  color: #777;
-}
-
-.legible code {
-  font-family: Courier, 'Courier New', monospace;
-  background: #efefef;
-}
-
-.legible pre code {
-  padding: 20px;
-  display: block;
-}
-
-/* Media */
-.legible img,
-.legible video,
-.legible param,
-.legible object,
-.legible embed,
-.legible iframe {
-  max-width: 100%; /* Media shouldn't break the layout */
-}
-
-.legible img {
-  height: auto; /* If the image width is resized, having this will ensure the height is resized in all browsers */
-}
-
-/* WordPress specific classes */
-.legible .alignleft {
-  float: left;
-  clear: left;
-  margin: 0 5px 5px 0;
-}
-
-.legible .alignright {
-  float: right;
-  clear: right;
-  margin: 0 5px 0 5px;
+.stat-block .stat {
+  border-left: 1px solid #69b1ce;
+  margin-left: 20px;
+  padding-left: 20px;
+  font-size: 60px;
+  font-weight: 700;
 }

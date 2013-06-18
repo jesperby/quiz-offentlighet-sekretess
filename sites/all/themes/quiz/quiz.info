@@ -29,6 +29,8 @@ regions_hidden[page_bottom] = Page Bottom
 stylesheets[all][] = css/base-reset.css
 stylesheets[all][] = css/base-improvements.css
 stylesheets[all][] = css/layout.css
+stylesheets[all][] = css/legible.css
+stylesheets[all][] = css/messages.css
 stylesheets[all][] = css/general.css
 stylesheets[all][] = css/responsiveness.css
 

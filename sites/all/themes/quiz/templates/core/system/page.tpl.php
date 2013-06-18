@@ -77,7 +77,7 @@ if (!empty($tabs['#primary']) || $action_links) { ?>
   // Page title. Visible when viewing individual nodes
   // and lists (like those created by views or taxonomy).
   //
-  if ($title) {
+  if ($title && (isset($node) && $node->type != 'quiz_round')) {
     print render($title_prefix); ?>
     <h1 class="title" id="page-title">
       <?php print $title; ?>

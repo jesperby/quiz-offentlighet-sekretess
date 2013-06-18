@@ -1,0 +1,29 @@
+/* Messages */
+.messages {
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.3em;
+}
+
+.messages a {
+  color: rgba(255,255,255,0.6);
+  text-decoration: underline;
+}
+
+.messages a:hover,
+.messages a:focus {
+  color: rgba(255,255,255,0.4);
+}
+
+.new,
+.messages.status { /* Where's .ok used? Tables? Check it out. */
+  background-color: #86ba75;
+}
+
+.messages.warning {
+  background-color: #e1ce30;
+}
+
+.messages.error {
+  background-color: #f55555;
+}
