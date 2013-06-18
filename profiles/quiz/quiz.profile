@@ -55,7 +55,7 @@ function quiz_ds_custom_fields_info() {
   $ds_field->ui_limit = 'quiz_round|*';
   $ds_field->properties = array(
     'code' => array(
-      'value' => '[node:field_number_of_correct_answers] / [node:field_number_of_questions]',
+      'value' => '[node:field_number_of_correct_answers]/[node:field_number_of_questions]',
       'format' => 'plain_text',
     ),
     'use_token' => 1,
