@@ -1,0 +1,444 @@
+<?php
+/**
+ * Main module file for Quiz Form module.
+ */
+
+// Define the path to the quiz form.
+define('QUIZ_WIZARD_PATH', 'quiz');
+
+/**
+ * Implements hook_permission().
+ */
+function quiz_wizard_permission() {
+  return array(
+    'access quiz' => array(
+      'title' => t('Access the quiz'),
+      'description' => t('Participate in the quiz.'),
+    ),
+    'administer quiz' => array(
+      'title' => t('Access the quiz'),
+      'description' => t('Administer and configure the quiz.'),
+      'restrict access' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function quiz_wizard_menu() {
+  // Main quiz path.
+  $items[QUIZ_WIZARD_PATH] = array(
+    'title' => 'Quiz',
+    'title callback' => 'quiz_wizard_get_title',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_wizard_quiz_form'),
+    'access arguments' => array('access quiz'),
+    'type' => MENU_CALLBACK,
+    'file' => 'quiz_wizard.pages.inc',
+  );
+
+  // The correct answers page.
+  $items['node/%node/answers'] = array(
+    'title' => t('Correct answers'),
+    'page callback' => 'quiz_wizard_quiz_answers',
+    'page arguments' => array(1),
+    'access arguments' => array('access quiz'),
+    'type' => MENU_CALLBACK,
+    'file' => 'quiz_wizard.pages.inc',
+  );
+
+  // Administration page.
+  $items['admin/config/system/quiz'] = array(
+    'title' => 'Quiz',
+    'description' => 'Configure the quiz.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_wizard_admin_form'),
+    'access arguments' => array('administer quiz'),
+    'file' => 'quiz_wizard.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function quiz_wizard_theme() {
+  return array(
+    'quiz_wizard_answers' => array(
+      'render element' => 'page',
+      'template' => 'quiz-wizard-answers',
+      'path' => drupal_get_path('module', 'quiz_wizard') . '/theme',
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function quiz_wizard_block_info() {
+  $blocks['intro'] = array(
+    'info' => t('Quiz: Intro text and link'),
+  );
+  $blocks['participants'] = array(
+    'info' => t('Quiz: Number of people who has taken a quiz'),
+  );
+  $blocks['average'] = array(
+    'info' => t('Quiz: Average score'),
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function quiz_wizard_block_view($delta = NULL) {
+  $block = array();
+
+  // If there is a delta supplied, check if a function for this delta exists.
+  // The function name should be named by the pattern quiz_wizard_block_DELTA.
+  if ($delta) {
+    $function = "quiz_wizard_block_$delta";
+    if (function_exists($function)) {
+      // The function exists, get the block subject and content from the
+      // function.
+      $block = $function();
+    }
+  }
+
+  return $block;
+}
+
+/**
+ * Block function for the intro block.
+ *
+ * This function is called when the block is about to be viewed, and is
+ * responsible for generating the title and content.
+ *
+ * @return array
+ *   An array with the subject and content key, as expected by
+ *   hook_block_view().
+ */
+function quiz_wizard_block_intro() {
+  if (!quiz_wizard_get_num_questions_available()) {
+    // No questions available, return an empty block, and warn the user.
+    if (user_access('create question content')) {
+      drupal_set_message(t("There are no questions available yet, probably because there aren't any question nodes created, or none of them are published. Go to <a href=\"!path\">this page</a> to create a question.", array('!path' => 'node/add/question')), 'error');
+    }
+    return array();
+  }
+
+  // Setup the initial values.
+  $intro_text = quiz_wizard_get_intro_text();
+  $block = array('content' => check_markup($intro_text['value'], $intro_text['format']));
+
+  // Add a link to the content, that links to the quiz form page.
+  $block['content'] .= l(t('Start quiz'), QUIZ_WIZARD_PATH);
+
+  // Return the block structure.
+  return $block;
+}
+
+/**
+ * Block function for the participants block.
+ *
+ * This function is called when the block is about to be viewed, and is
+ * responsible for generating the title and content.
+ *
+ * @return array
+ *   An array with the subject and content key, as expected by
+ *   hook_block_view().
+ */
+function quiz_wizard_block_participants() {
+  // Setup the initial values.
+  $block = array('subject' => t('Number of participants'), 'content' => '');
+
+  // Create and execute a query that counts the number of published quiz round
+  // nodes.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'quiz_round')
+    ->propertyCondition('status', 1)
+    ->count();
+  $result = $query->execute();
+
+  // Add the result to the block content, if it's not 0.
+  if ($result) {
+    $block['content'] = $result;
+  }
+
+  // Return the block structure.
+  return $block;
+}
+
+/**
+ * Block function for the average block.
+ *
+ * This function is called when the block is about to be viewed, and is
+ * responsible for generating the title and content.
+ *
+ * @return array
+ *   An array with the subject and content key, as expected by
+ *   hook_block_view().
+ */
+function quiz_wizard_block_average() {
+  // Setup the initial values.
+  $block = array('subject' => t('Average score'), 'content' => '');
+
+  // Create and execute a query that fetches published quiz nodes.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'quiz_round')
+    ->propertyCondition('status', 1);
+  $result = $query->execute();
+
+  if (!isset($result['node'])) {
+    // No nodes were found, return an empty block.
+    return $block;
+  }
+
+  // Start calculating the score.
+  $score = 0;
+  foreach ($result['node'] as $row) {
+    // Load this node via entity_metadata_wrapper(), and add this score to the
+    // total score count.
+    $wrapper = entity_metadata_wrapper('node', $row->nid);
+    $score += $wrapper->field_number_of_correct_answers->value() / $wrapper->field_number_of_questions->value();
+  }
+
+  // Calculate the percentage based on the total number of nodes that were
+  // found, and add the result to the block content.
+  $score = round(($score / count($result['node'])) * 100);
+  $block['content'] = $score . ' %';
+
+  // Return the block structure.
+  return $block;
+}
+
+/**
+ * Preprocess variables for node.tpl.php.
+ *
+ * We'll add a class to quiz round nodes which indicates whether or not the user
+ * passed the limit.
+ */
+function quiz_wizard_preprocess_node(&$variables) {
+  if ($variables['node']->type != 'quiz_round') {
+    // Not a quiz round node, exit.
+    return;
+  }
+
+  // Load the node.
+  $wrapper = entity_metadata_wrapper('node', $variables['node']);
+
+  // Calculate the achieved rate.
+  $achivied_rate = ($wrapper->field_number_of_correct_answers->value() / $wrapper->field_number_of_questions->value()) * 100;
+
+  // Add the class.
+  $variables['classes_array'][] = $achivied_rate >= quiz_wizard_get_pass_rate() ? 'passed' : 'failed';
+}
+
+/**
+ * Gets the title that should be used for the quiz.
+ *
+ * @return string
+ *   The quiz title.
+ */
+function quiz_wizard_get_title() {
+  return variable_get('quiz_title', variable_get('site_name', 'Quiz'));
+}
+
+/**
+ * Gets the intro text that should be used for the quiz.
+ *
+ * @return array
+ *   The configured intro text, keyed by the value and text format.
+ */
+function quiz_wizard_get_intro_text() {
+  return variable_get('quiz_intro_text', array('value' => '', 'format' => NULL));
+}
+
+/**
+ * Gets the pass rate.
+ *
+ * @return int
+ *   The pass rate in percentage.
+ */
+function quiz_wizard_get_pass_rate() {
+  return variable_get('quiz_pass_rate', 70);
+}
+
+/**
+ * Gets the title that should be used when failing the quiz.
+ *
+ * @return string
+ *   The fail title.
+ */
+function quiz_wizard_get_pass_title() {
+  return variable_get('quiz_pass_title', "You passed the quiz!");
+}
+
+/**
+ * Gets the text that should be used when failing the quiz.
+ *
+ * @return array
+ *   The configured fail text, keyed by the value and text format.
+ */
+function quiz_wizard_get_pass_text() {
+  return variable_get('quiz_pass_text', array('value' => '', 'format' => NULL));
+}
+
+/**
+ * Gets the title that should be used when failing the quiz.
+ *
+ * @return string
+ *   The fail title.
+ */
+function quiz_wizard_get_fail_title() {
+  return variable_get('quiz_fail_title', "You didn't pass the quiz.");
+}
+
+/**
+ * Gets the text that should be used when failing the quiz.
+ *
+ * @return array
+ *   The configured fail text, keyed by the value and text format.
+ */
+function quiz_wizard_get_fail_text() {
+  return variable_get('quiz_fail_text', array('value' => '', 'format' => NULL));
+}
+
+/**
+ * Gets the auto submit configuration.
+ *
+ * @return bool
+ *   TRUE or FALSE indicating whether or not the form should be auto submitted.
+ */
+function quiz_wizard_get_auto_submit() {
+  return variable_get('quiz_submit', TRUE);
+}
+
+/**
+ * Gets the configured number of questions.
+ *
+ * This will get the stored variable, but it will also make sure that it doesn't
+ * exceed the maximum number of questions available.
+ *
+ * @return int
+ *   The number of questions that should be used for the quiz.
+ */
+function quiz_wizard_get_num_questions_configured() {
+  // Get the maximum number of questions.
+  $maximum = quiz_wizard_get_num_questions_maximum();
+
+  // Return the lowest value for the configured value and the maximum value.
+  return min(variable_get('quiz_questions', $maximum), $maximum);
+}
+
+/**
+ * Gets the available number of questions.
+ *
+ * This will get the total number of available questions. This is based on the
+ * number of published question nodes that exists.
+ *
+ * @return int
+ *   The number of question nodes that were found.
+ */
+function quiz_wizard_get_num_questions_available() {
+  // Create and execute a query that fetches published question nodes.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'question')
+    ->propertyCondition('status', 1);
+  $result = $query->execute();
+
+  // Return the result count.
+  return isset($result['node']) ? count($result['node']) : 0;
+}
+
+/**
+ * Gets the maximun number of questions.
+ *
+ * This function will count the number of times a field with the naming
+ * convention field_qN_nid is found. It will also make sure that the number
+ * doesn't exceed the number of question nodes available.
+ *
+ * @return int
+ *   The number of times a field name matched the pattern.
+ */
+function quiz_wizard_get_num_questions_maximum() {
+  // Get the fields from the quiz round content type.
+  $fields = field_info_instances('node', 'quiz_round');
+
+  // Get the number of available questions.
+  $available = quiz_wizard_get_num_questions_available();
+
+  // Count the number of quiz fields.
+  $questions = 0;
+  foreach ($fields as $field_name => $info) {
+    if (preg_match('/^field_q\\d+_nid$/', $field_name)) {
+      // Found a field that was named after the naming convention, increase the
+      // count.
+      $questions++;
+
+      // Stop searching if we've reached the number of available questions.
+      if ($questions == $available) {
+        break;
+      }
+    }
+  }
+
+  // Return the number of fields that were found.
+  return $questions;
+}
+
+/**
+ * Gets a random question node.
+ *
+ * This will get a random published question node that hasn't been answered yet.
+ *
+ * @param array $answered
+ *   An array containing nids for questions that has been answered.
+ *
+ * @return object
+ *   Returns the fully loaded question node that was found.
+ */
+function quiz_wizard_get_question($answered = array()) {
+  // Create a query that fetched a random nid from published question nodes.
+  $query = db_select('node', 'n');
+  $query->addField('n', 'nid');
+  $query->condition('type', 'question');
+  $query->condition('status', 1);
+  $query->orderRandom();
+  $query->range(0, 1);
+
+  // Exclude nids that already has been answered.
+  if (!empty($answered)) {
+    $query->condition('nid', $answered, 'NOT IN');
+  }
+
+  // Execute the query and return the loaded node.
+  $result = $query->execute();
+  return node_load($result->fetchField());
+}
+
+/**
+ * Checks whether or not a specific quiz was passed.
+ *
+ * @param int $nid
+ *   The node id for the quiz round node.
+ *
+ * @return bool
+ *   TRUE or FALSE indicating whether or not the quiz was passed.
+ */
+function quiz_wizard_quiz_passed($nid) {
+  // Load the node.
+  $wrapper = entity_metadata_wrapper('node', $nid);
+
+  // Calculate the achieved rate.
+  $achivied_rate = ($wrapper->field_number_of_correct_answers->value() / $wrapper->field_number_of_questions->value()) * 100;
+
+  // Return the result based on the configured pass rate.
+  return $achivied_rate >= quiz_wizard_get_pass_rate();
+}

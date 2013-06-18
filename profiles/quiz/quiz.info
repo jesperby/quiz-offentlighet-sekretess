@@ -1,0 +1,17 @@
+name = Quiz
+description = Configures the site to be used as the base for a quiz.
+core = 7.x
+dependencies[] = block
+dependencies[] = dblog
+dependencies[] = ds
+dependencies[] = ds_ui
+dependencies[] = entity
+dependencies[] = field_ui
+dependencies[] = link
+dependencies[] = list
+dependencies[] = number
+dependencies[] = options
+dependencies[] = overlay
+dependencies[] = quiz_wizard
+dependencies[] = token
+dependencies[] = toolbar

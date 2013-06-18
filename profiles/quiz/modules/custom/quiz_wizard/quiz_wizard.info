@@ -1,0 +1,3 @@
+name = Quiz Wizard
+description = Creates the multi-step form used by the quiz.
+core = 7.x

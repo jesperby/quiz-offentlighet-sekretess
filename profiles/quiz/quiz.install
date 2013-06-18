@@ -1,0 +1,1070 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the Quiz install profile.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function quiz_install() {
+  // Enable blocks related to the quiz, and put them in the content region for
+  // the front page.
+  $default_theme = variable_get('theme_default', 'bartik');
+  $values = array(
+    array(
+      'module' => 'quiz_wizard',
+      'delta' => 'intro',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 1,
+      'region' => 'content',
+      'visibility' => 1,
+      'pages' => '<front>',
+    ),
+    array(
+      'module' => 'quiz_wizard',
+      'delta' => 'participants',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'content',
+      'visibility' => 1,
+      'pages' => '<front>',
+    ),
+    array(
+      'module' => 'quiz_wizard',
+      'delta' => 'average',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 3,
+      'region' => 'content',
+      'visibility' => 1,
+      'pages' => '<front>',
+    ),
+  );
+  $query = db_insert('block')->fields(array('module', 'delta', 'theme', 'status', 'weight', 'region', 'visibility', 'pages'));
+  foreach ($values as $record) {
+    $query->values($record);
+  }
+  $query->execute();
+
+  // Allow anonymous and authenticated users to access content and the quiz.
+  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('access content', 'access quiz'));
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('access content', 'access quiz'));
+
+  // Enable and configure Seven as the administration theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', 'seven')
+    ->execute();
+  variable_set('admin_theme', 'seven');
+  variable_set('node_admin_theme', '1');
+
+  // Create question and quiz round content types.
+  $types = array(
+    array(
+      'type' => 'question',
+      'name' => t('Question'),
+      'base' => 'node_content',
+    ),
+    array(
+      'type' => 'quiz_round',
+      'name' => t('Quiz round'),
+      'base' => 'node_content',
+    ),
+  );
+  foreach ($types as $type) {
+    $type = node_type_set_defaults($type);
+    node_type_save($type);
+  }
+
+  // Create field and instance for field_answers.
+  $field = array(
+    'field_name' => 'field_answers',
+    'type' => 'text',
+    'cardinality' => '3',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_answers',
+    'entity_type' => 'node',
+    'bundle' => 'question',
+    'label' => 'Answers',
+    'widget' => array(
+      'settings' => array(
+        'size' => '60',
+      ),
+      'type' => 'text_textfield',
+      'weight' => '3',
+    ),
+    'display' => array(
+      'answer' => array(
+        'label' => 'hidden',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => '2',
+      ),
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => '0',
+      ),
+      'question' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => '1',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_case_help_texts.
+  $field = array(
+    'field_name' => 'field_case_help_texts',
+    'type' => 'text_long',
+    'cardinality' => '3',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_case_help_texts',
+    'entity_type' => 'node',
+    'bundle' => 'question',
+    'label' => 'Case help texts',
+    'widget' => array(
+      'settings' => array(
+        'rows' => '5',
+      ),
+      'type' => 'text_textarea',
+      'weight' => '5',
+    ),
+    'display' => array(
+      'answer' => array(
+        'label' => 'hidden',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => '0',
+      ),
+      'default' => array(
+        'label' => 'hidden',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => '1',
+      ),
+      'question' => array(
+        'label' => 'hidden',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => '3',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_correct_answer.
+  $field = array(
+    'field_name' => 'field_correct_answer',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_correct_answer',
+    'entity_type' => 'node',
+    'bundle' => 'question',
+    'label' => 'Correct answer',
+    'description' => 'Choose a number between 0-2',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+      'weight' => '4',
+    ),
+    'display' => array(
+      'answer' => array(
+        'label' => 'hidden',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => '4',
+      ),
+      'default' => array(
+        'label' => 'hidden',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => '3',
+      ),
+      'question' => array(
+        'label' => 'hidden',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => '4',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_read_more_link.
+  $field = array(
+    'field_name' => 'field_scenario',
+    'type' => 'text_long',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_scenario',
+    'entity_type' => 'node',
+    'bundle' => 'question',
+    'label' => 'Scenario',
+    'widget' => array(
+      'settings' => array(
+        'rows' => '5',
+      ),
+      'type' => 'text_textarea',
+      'weight' => '2',
+    ),
+    'display' => array(
+      'answer' => array(
+        'label' => 'hidden',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => '1',
+      ),
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => '4',
+      ),
+      'question' => array(
+        'label' => 'hidden',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => '0',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q1_a.
+  $field = array(
+    'field_name' => 'field_q1_a',
+    'type' => 'list_integer',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '0',
+        1 => '1',
+        2 => '2',
+      ),
+      'allowed_values_function' => '',
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q1_a',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 1 answer',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'options_buttons',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q1_nid.
+  $field = array(
+    'field_name' => 'field_q1_nid',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q1_nid',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 1 nid',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q2_a.
+  $field = array(
+    'field_name' => 'field_q2_a',
+    'type' => 'list_integer',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '0',
+        1 => '1',
+        2 => '2',
+      ),
+      'allowed_values_function' => '',
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q2_a',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 2 answer',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'options_buttons',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q2_nid.
+  $field = array(
+    'field_name' => 'field_q2_nid',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q2_nid',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 2 nid',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q3_a.
+  $field = array(
+    'field_name' => 'field_q3_a',
+    'type' => 'list_integer',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '0',
+        1 => '1',
+        2 => '2',
+      ),
+      'allowed_values_function' => '',
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q3_a',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 3 answer',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'options_buttons',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q3_nid.
+  $field = array(
+    'field_name' => 'field_q3_nid',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q3_nid',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 3 nid',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q4_a.
+  $field = array(
+    'field_name' => 'field_q4_a',
+    'type' => 'list_integer',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '0',
+        1 => '1',
+        2 => '2',
+      ),
+      'allowed_values_function' => '',
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q4_a',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 4 answer',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'options_buttons',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q4_nid.
+  $field = array(
+    'field_name' => 'field_q4_nid',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q4_nid',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 4 nid',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q5_a.
+  $field = array(
+    'field_name' => 'field_q5_a',
+    'type' => 'list_integer',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '0',
+        1 => '1',
+        2 => '2',
+      ),
+      'allowed_values_function' => '',
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q5_a',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 5 answer',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'options_buttons',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q5_nid.
+  $field = array(
+    'field_name' => 'field_q5_nid',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q5_nid',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 5 nid',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q6_a.
+  $field = array(
+    'field_name' => 'field_q6_a',
+    'type' => 'list_integer',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '0',
+        1 => '1',
+        2 => '2',
+      ),
+      'allowed_values_function' => '',
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q6_a',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 6 answer',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'options_buttons',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q6_nid.
+  $field = array(
+    'field_name' => 'field_q6_nid',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q6_nid',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 6 nid',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q7_a.
+  $field = array(
+    'field_name' => 'field_q7_a',
+    'type' => 'list_integer',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '0',
+        1 => '1',
+        2 => '2',
+      ),
+      'allowed_values_function' => '',
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q7_a',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 7 answer',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'options_buttons',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q7_nid.
+  $field = array(
+    'field_name' => 'field_q7_nid',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q7_nid',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 7 nid',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q8_a.
+  $field = array(
+    'field_name' => 'field_q8_a',
+    'type' => 'list_integer',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '0',
+        1 => '1',
+        2 => '2',
+      ),
+      'allowed_values_function' => '',
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q8_a',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 8 answer',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'options_buttons',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q8_nid.
+  $field = array(
+    'field_name' => 'field_q8_nid',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q8_nid',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 8 nid',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q9_a.
+  $field = array(
+    'field_name' => 'field_q9_a',
+    'type' => 'list_integer',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '0',
+        1 => '1',
+        2 => '2',
+      ),
+      'allowed_values_function' => '',
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q9_a',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 9 answer',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'options_buttons',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q9_nid.
+  $field = array(
+    'field_name' => 'field_q9_nid',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q9_nid',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 9 nid',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q10_a.
+  $field = array(
+    'field_name' => 'field_q10_a',
+    'type' => 'list_integer',
+    'settings' => array(
+      'allowed_values' => array(
+        0 => '0',
+        1 => '1',
+        2 => '2',
+      ),
+      'allowed_values_function' => '',
+    ),
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q10_a',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 10 answer',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'options_buttons',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_q10_nid.
+  $field = array(
+    'field_name' => 'field_q10_nid',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_q10_nid',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Question 10 nid',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_number_of_correct_answers.
+  $field = array(
+    'field_name' => 'field_number_of_correct_answers',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_number_of_correct_answers',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Number of correct answers',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_number_of_questions.
+  $field = array(
+    'field_name' => 'field_number_of_questions',
+    'type' => 'number_integer',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_number_of_questions',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Number of answers',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'number',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'settings' => array(),
+        'type' => 'hidden',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_score_text.
+  $field = array(
+    'field_name' => 'field_score_text',
+    'type' => 'text_long',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_score_text',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Score text',
+    'widget' => array(
+      'settings' => array(
+        'rows' => '5',
+      ),
+      'type' => 'text_textarea',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => '3',
+      ),
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_correct_answers_link.
+  $field = array(
+    'field_name' => 'field_correct_answers_link',
+    'type' => 'link_field',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_correct_answers_link',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'Correct answers link',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'link_field',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'module' => 'link',
+        'settings' => array(),
+        'type' => 'link_default',
+      ),
+    ),
+    'default_value' => array(
+      0 => array(
+        'title' => '',
+        'url' => 'node/[node:nid]/answers',
+      ),
+    ),
+    'settings' => array(
+      'attributes' => array(
+        'class' => '',
+        'configurable_title' => 0,
+        'rel' => '',
+        'target' => 'default',
+        'title' => '',
+      ),
+      'display' => array(
+        'url_cutoff' => '80',
+      ),
+      'enable_tokens' => 1,
+      'rel_remove' => 'default',
+      'title' => 'value',
+      'title_maxlength' => '128',
+      'title_value' => 'Correct answers',
+      'url' => 0,
+      'user_register_form' => FALSE,
+      'validate_url' => 0,
+    ),
+  );
+  field_create_instance($instance);
+
+  // Create field and instance for field_new_round_link.
+  $field = array(
+    'field_name' => 'field_new_round_link',
+    'type' => 'link_field',
+  );
+  field_create_field($field);
+  $instance = array(
+    'field_name' => 'field_new_round_link',
+    'entity_type' => 'node',
+    'bundle' => 'quiz_round',
+    'label' => 'New round link',
+    'widget' => array(
+      'settings' => array(),
+      'type' => 'link_field',
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'module' => 'link',
+        'settings' => array(),
+        'type' => 'link_default',
+      ),
+    ),
+    'default_value' => array(
+      0 => array(
+        'title' => '',
+        'url' => '[site:url]quiz',
+      ),
+    ),
+    'settings' => array(
+      'attributes' => array(
+        'class' => '',
+        'configurable_title' => 0,
+        'rel' => '',
+        'target' => 'default',
+        'title' => '',
+      ),
+      'display' => array(
+        'url_cutoff' => '80',
+      ),
+      'enable_tokens' => 1,
+      'rel_remove' => 'default',
+      'title' => 'value',
+      'title_maxlength' => '128',
+      'title_value' => 'New round',
+      'url' => 0,
+      'user_register_form' => FALSE,
+      'validate_url' => 0,
+    ),
+  );
+  field_create_instance($instance);
+
+  $value = array(
+    'view_modes' => array(
+      'teaser' => array(
+        'custom_settings' => false,
+      ),
+      'full' => array(
+        'custom_settings' => false,
+      ),
+      'rss' => array(
+        'custom_settings' => false,
+      ),
+      'token' => array(
+        'custom_settings' => false,
+      ),
+      'question' => array(
+        'custom_settings' => true,
+      ),
+      'answer' => array(
+        'custom_settings' => true,
+      ),
+    ),
+    'extra_fields' => array(
+      'form' => array(),
+      'display' => array(),
+    ),
+  );
+  variable_set('field_bundle_settings_node__question', $value);
+
+  $value = array(
+    'view_modes' => array(
+      'teaser' => array(
+        'custom_settings' => false,
+      ),
+      'full' => array(
+        'custom_settings' => false,
+      ),
+      'rss' => array(
+        'custom_settings' => false,
+      ),
+      'token' => array(
+        'custom_settings' => false,
+      ),
+      'question' => array(
+        'custom_settings' => false,
+      ),
+      'answer' => array(
+        'custom_settings' => false,
+      ),
+    ),
+    'extra_fields' => array(
+      'form' => array(),
+      'display' => array(),
+    ),
+  );
+  variable_set('field_bundle_settings_node__quiz_round', $value);
+}
