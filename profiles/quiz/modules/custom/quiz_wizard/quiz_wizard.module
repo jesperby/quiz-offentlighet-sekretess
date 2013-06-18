@@ -135,7 +135,9 @@ function quiz_wizard_block_intro() {
   $block = array('content' => check_markup($intro_text['value'], $intro_text['format']));
 
   // Add a link to the content, that links to the quiz form page.
-  $block['content'] .= l(t('Start quiz'), QUIZ_WIZARD_PATH, array('attributes' => array('class' => array('quiz-start'))));
+  $block['content'] .= '<p class="quiz-start">';
+  $block['content'] .= l(t('Start quiz'), QUIZ_WIZARD_PATH);
+  $block['content'] .= '</p>';
 
   // Return the block structure.
   return $block;
