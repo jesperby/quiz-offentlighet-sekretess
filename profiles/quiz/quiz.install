@@ -67,12 +67,21 @@ function quiz_install() {
 
   // Enable blocks related to the quiz, and put them in the content region for
   // the front page.
-  $default_theme = variable_get('theme_default', 'bartik');
   $values = array(
+    array(
+      'module' => 'system',
+      'delta' => 'main-menu',
+      'theme' => 'quiz',
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'main_navigation',
+      'visibility' => 0,
+      'pages' => '',
+    ),
     array(
       'module' => 'quiz_wizard',
       'delta' => 'intro',
-      'theme' => $default_theme,
+      'theme' => 'quiz',
       'status' => 1,
       'weight' => 1,
       'region' => 'content',
@@ -82,7 +91,7 @@ function quiz_install() {
     array(
       'module' => 'quiz_wizard',
       'delta' => 'participants',
-      'theme' => $default_theme,
+      'theme' => 'quiz',
       'status' => 1,
       'weight' => 2,
       'region' => 'content',
@@ -92,7 +101,7 @@ function quiz_install() {
     array(
       'module' => 'quiz_wizard',
       'delta' => 'average',
-      'theme' => $default_theme,
+      'theme' => 'quiz',
       'status' => 1,
       'weight' => 3,
       'region' => 'content',
