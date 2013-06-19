@@ -103,6 +103,42 @@ function quiz_form($variables) {
 
 /**
  *
+ * hook_form_alter()
+ * - Add classes and wrappers to question form
+ *
+ **/
+function quiz_form_alter(&$form, &$form_state, $form_id) {
+  switch($form_id) {
+    case 'quiz_wizard_quiz_form':
+
+      // Adding class and removing hidden fields from top
+      $form['#attributes']['class'][] = 'box';
+      $form['question']['#weight'] = 255;
+
+      // Adding class to title
+      $form['title']['#prefix'] = '<h2 class="title sub-title">';
+      $form['title']['#suffix'] = '</h2>';
+
+      // Adding wrapper to scenario
+      if(isset($form['scenario'])) {
+        $form['scenario']['#prefix'] = '<div class="legible">';
+        $form['scenario']['#suffix'] = '</div>';
+      }
+      if(isset($form['help_text'])) {
+        $form['help_text']['#prefix'] = '<div class="legible">';
+        $form['help_text']['#suffix'] = '</div>';
+      }
+      //print '<pre>' . print_r($form, 1) . '</pre>'; die;
+      //if(!isset($form['actions']['evaluate'])) {
+      //  print '<pre>' . print_r($form, 1) . '</pre>'; die;
+      //}
+      break;
+  }
+}
+
+
+/**
+ *
  * hook_textarea()
  * - Remove the annoying and ugly Drupal grippie. Totally useless in modern browsers.
  *

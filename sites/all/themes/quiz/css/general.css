@@ -39,6 +39,14 @@ textarea:focus {
   background-color: #efefef;
 }
 
+.form-type-radio {
+  margin-top: 0.3em;
+}
+
+.form-type-radio:first-child {
+  margin-top: 0;
+}
+
 .form-type-radio * {
   display: inline;
   vertical-align: middle;
@@ -376,6 +384,11 @@ h1.title + .node {
 
 .node-quiz-round .field-type-link-field {
   text-align: center;
+}
+
+/* Quiz form */
+#quiz-wizard-wrapper label[for="edit-answer"] {
+  display: none;
 }
 
 /* Links */

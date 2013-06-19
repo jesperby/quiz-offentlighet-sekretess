@@ -29,15 +29,22 @@ body > *,
 }
 
 .question-content > *,
+.box > *,
 #comments .comment > *,
 #comments .comment,
 .node > * {
   margin-top: 20px;
 }
 
-.main-content > *:first-child,
+.question-content > *:first-child,
+.box > *:first-child,
 #comments .comment > *:first-child,
 #comments > *:first-child,
-#toolbar {
+#toolbar,
+.main-content > *:first-child {
   margin-top: 0;
+}
+
+#quiz-wizard-wrapper .messages {
+  margin-bottom: 20px;
 }
