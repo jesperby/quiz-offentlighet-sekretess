@@ -53,12 +53,14 @@ function quiz_install() {
   user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('access content', 'access quiz'));
   user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('access content', 'access quiz'));
 
-  // Enable and configure Seven as the administration theme.
+  // Enable and configure Seven as the administration theme, and Quiz as the
+  // default theme.
   db_update('system')
     ->fields(array('status' => 1))
     ->condition('type', 'theme')
-    ->condition('name', 'seven')
+    ->condition('name', array('seven', 'quiz'))
     ->execute();
+  variable_set('theme_default', 'quiz');
   variable_set('admin_theme', 'seven');
   variable_set('node_admin_theme', '1');
 
