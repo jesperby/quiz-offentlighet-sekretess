@@ -284,6 +284,7 @@ function quiz_wizard_quiz_answers($node) {
       '#path' => 'node/' . $node->nid,
       '#options' => array(
         'attributes' => array(),
+        'html' => FALSE,
       ),
     ),
     'questions' => array(),
