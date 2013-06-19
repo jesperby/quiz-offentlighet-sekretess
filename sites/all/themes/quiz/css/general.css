@@ -44,6 +44,7 @@ textarea:focus {
   vertical-align: middle;
 }
 
+.back-button a,
 .field-type-link-field a,
 .quiz-start a,
 .system-tabs a,
@@ -68,6 +69,8 @@ button {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#efad49', endColorstr='#eb981c',GradientType=0 ); /* IE6-9 */
 }
 
+.back-button a:hover,
+.back-button a:focus,
 .field-type-link-field a:hover,
 .field-type-link-field a:focus,
 .quiz-start a:focus,
@@ -94,6 +97,7 @@ button:hover {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eda436', endColorstr='#ea8f10',GradientType=0 ); /* IE6-9 */
 }
 
+.back-button a:active,
 .field-type-link-field a:active,
 .quiz-start a:active,
 .system-tabs a:active,
@@ -104,6 +108,7 @@ button:active {
   box-shadow: inset 0 2px 1px rgba(0,0,0,0.2);
 }
 
+.back-button a,
 .field-type-link-field a,
 .quiz-start a,
 .button-big {
@@ -319,6 +324,10 @@ h1.title + .node {
 }
 
 /* Correct your quiz page */
+#questions {
+  margin-top: 20px;
+}
+
 .question-content .legible ol {
   list-style: none;
   margin-left: 0;

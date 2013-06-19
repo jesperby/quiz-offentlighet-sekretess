@@ -1,4 +1,4 @@
-<?php print render($page['back']); ?>
+<p class="back-button"><?php print render($page['back']); ?></p>
 
 <div id="questions" class="node">
   <?php foreach ($page['questions'] as $question): ?>
