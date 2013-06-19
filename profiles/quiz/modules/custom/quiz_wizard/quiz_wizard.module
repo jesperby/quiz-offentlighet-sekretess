@@ -132,7 +132,7 @@ function quiz_wizard_block_intro() {
 
   // Setup the initial values.
   $intro_text = quiz_wizard_get_intro_text();
-  $block = array('content' => check_markup($intro_text['value'], $intro_text['format']));
+  $block = array('subject' => t('Take the quiz'), 'content' => check_markup($intro_text['value'], $intro_text['format']));
 
   // Add a link to the content, that links to the quiz form page.
   $block['content'] .= '<p class="quiz-start">';
