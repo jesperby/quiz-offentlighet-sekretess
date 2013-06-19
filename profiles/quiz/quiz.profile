@@ -33,6 +33,31 @@ function quiz_configure_form() {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function quiz_form_install_configure_form_alter(&$form) {
+  // Add the Site slogan to the configuration form.
+  $form['site_information']['site_slogan'] = array(
+    '#type' => 'textfield',
+    '#title' => st('Site slogan'),
+    '#weight' => -19,
+    '#default_value' => st('An example quiz'),
+  );
+
+  // Add a custom submit callback that allows us to save the site slogan as a
+  // variable.
+  $form['#submit'][] = 'quiz_install_configure_form_submit';
+}
+
+/**
+ * Additional submit callback for the install configuration form.
+ */
+function quiz_install_configure_form_submit($form, &$form_state) {
+  // Save the site slogan variable.
+  variable_set('site_slogan', $form_state['values']['site_slogan']);
+}
+
+/**
  * Implements hook_ctools_plugin_api().
  */
 function quiz_ctools_plugin_api() {
