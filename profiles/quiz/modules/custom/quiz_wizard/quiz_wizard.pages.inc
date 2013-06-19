@@ -14,7 +14,7 @@ function quiz_wizard_quiz_form($form, &$form_state) {
   $form_state['step'] = isset($form_state['step']) ? $form_state['step'] : 1;
 
   // Set the number of questions for this quiz.
-  $form_state['questions'] = isset($form_state['questions']) ? $form_state['questions'] : quiz_wizard_get_num_questions_configured();
+  $form_state['questions'] = isset($form_state['questions']) ? $form_state['questions'] : min(quiz_wizard_get_num_questions_configured(), quiz_wizard_get_num_questions_available());
 
   // If we have stored values for this step, it means that the user has answered
   // this question. In that case, we'll display the correct answer for this
