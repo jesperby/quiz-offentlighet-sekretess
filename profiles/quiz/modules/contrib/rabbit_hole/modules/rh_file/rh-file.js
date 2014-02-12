@@ -1,6 +1,6 @@
 (function($) {
 
-Drupal.behaviors.rhNode = {
+Drupal.behaviors.rhFile = {
   attach: function (context, settings) {
 
     // Set the summary for the settings form.
