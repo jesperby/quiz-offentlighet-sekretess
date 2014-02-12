@@ -322,6 +322,16 @@ function quiz_wizard_get_auto_submit() {
 }
 
 /**
+ * Gets randomize question configuration.
+ *
+ * @return bool
+ *   TRUE or FALSE indicating whether or not the form should be auto submitted.
+ */
+function quiz_wizard_get_randomize() {
+  return variable_get('quiz_randomize', TRUE);
+}
+
+/**
  * Gets the configured number of questions.
  *
  * This will get the stored variable, but it will also make sure that it doesn't
@@ -389,7 +399,7 @@ function quiz_wizard_get_num_questions_maximum() {
 /**
  * Gets a random question node.
  *
- * This will get a random published question node that hasn't been answered yet.
+ * This will get a published question node that hasn't been answered yet.
  *
  * @param array $answered
  *   An array containing nids for questions that has been answered.
@@ -403,8 +413,14 @@ function quiz_wizard_get_question($answered = array()) {
   $query->addField('n', 'nid');
   $query->condition('type', 'question');
   $query->condition('status', 1);
-  $query->orderRandom();
   $query->range(0, 1);
+
+  // Randomize if we've set that option, otherwise start with the oldest question
+  if (quiz_wizard_get_randomize()) {
+    $query->orderRandom();
+  } else {
+    $query->orderBy('created', 'ASC');
+  }
 
   // Exclude nids that already has been answered.
   if (!empty($answered)) {

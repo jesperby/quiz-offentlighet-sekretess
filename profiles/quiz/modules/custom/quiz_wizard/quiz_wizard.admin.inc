@@ -22,7 +22,7 @@ function quiz_wizard_admin_form($form, &$form_state) {
   $form['configuration']['quiz_questions'] = array(
     '#type' => 'select',
     '#title' => t('Number of questions'),
-    '#description' => t('The number of questions that the user has to answer. The order will be randomized every time.'),
+    '#description' => t('The number of questions that the user has to answer.'),
     '#required' => TRUE,
     '#options' => $options,
     '#default_value' => quiz_wizard_get_num_questions_configured(),
@@ -45,6 +45,14 @@ function quiz_wizard_admin_form($form, &$form_state) {
     '#title' => t('Auto submit the form'),
     '#description' => t('Will hide the submit button, and submit the form automatically as soon as the user picks an answer.'),
     '#default_value' => quiz_wizard_get_auto_submit(),
+  );
+
+  // Configure randomize order.
+  $form['configuration']['quiz_randomize'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Randomize questions'),
+    '#description' => t('Will randomize the order of questions. If you uncheck this, the questions will be used by publishing date starting with the oldest.'),
+    '#default_value' => quiz_wizard_get_randomize(),
   );
 
   // Add a fieldset for the text settings.
