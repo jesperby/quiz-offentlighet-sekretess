@@ -122,8 +122,9 @@ function quiz_wizard_block_view($delta = NULL) {
  *   hook_block_view().
  */
 function quiz_wizard_block_intro() {
+
+  // No questions available, return an empty block, and warn the user.
   if (!quiz_wizard_get_num_questions_available()) {
-    // No questions available, return an empty block, and warn the user.
     if (user_access('create question content')) {
       drupal_set_message(t("There are no questions available yet, probably because there aren't any question nodes created, or none of them are published. Go to <a href=\"!path\">this page</a> to create a question.", array('!path' => 'node/add/question')), 'error');
     }
@@ -415,7 +416,7 @@ function quiz_wizard_get_question($answered = array()) {
   $query->condition('status', 1);
   $query->range(0, 1);
 
-  // Randomize if we've set that option, otherwise start with the oldest question
+  // Randomize if we've set that option, otherwise start with the oldest question.
   if (quiz_wizard_get_randomize()) {
     $query->orderRandom();
   } else {

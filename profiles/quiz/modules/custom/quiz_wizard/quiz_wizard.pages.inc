@@ -10,6 +10,7 @@
  * show depending on the step.
  */
 function quiz_wizard_quiz_form($form, &$form_state) {
+
   // Set the initial step to 1, if the step hasn't been set.
   $form_state['step'] = isset($form_state['step']) ? $form_state['step'] : 1;
 
@@ -50,9 +51,9 @@ function quiz_wizard_quiz_form($form, &$form_state) {
         '#value' => t('Next question'),
         '#submit' => array('quiz_wizard_quiz_form_next_submit'),
         '#ajax' => array(
-  				'wrapper' => 'quiz-wizard-wrapper',
-  				'callback' => 'quiz_wizard_quiz_form_ajax_callback',
-  			),
+          'wrapper' => 'quiz-wizard-wrapper',
+          'callback' => 'quiz_wizard_quiz_form_ajax_callback',
+        ),
       );
     }
     else {
@@ -140,9 +141,9 @@ function quiz_wizard_quiz_form($form, &$form_state) {
       '#value' => t('Evaluate'),
       '#submit' => array('quiz_wizard_quiz_form_evaluate_submit'),
       '#ajax' => array(
-				'wrapper' => 'quiz-wizard-wrapper',
-				'callback' => 'quiz_wizard_quiz_form_ajax_callback',
-			),
+        'wrapper' => 'quiz-wizard-wrapper',
+        'callback' => 'quiz_wizard_quiz_form_ajax_callback',
+      ),
     );
   }
 
@@ -196,7 +197,7 @@ function quiz_wizard_quiz_form_next_submit($form, &$form_state) {
  * Form submit for the review button.
  *
  * This is the last submit function for the multi-step form. The purpose of this
- * funciton is to create the quiz round node based on the question evaluations.
+ * function is to create the quiz round node based on the question evaluations.
  */
 function quiz_wizard_quiz_form_review_submit($form, &$form_state) {
   // Create the initial values required by the node.
